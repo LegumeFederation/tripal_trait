@@ -1,0 +1,99 @@
+format-version: 1.2
+default-namespace: tripal_trait_dictionary
+
+
+! Contact worksheet data dictionary
+
+! name_code
+
+[Term]
+id: TTrait:0000001
+name: name
+def: Field name in Contact worksheet
+
+[Term]
+id: TTrait:0000002
+name: first_name
+def: Field first_name in Contact worksheet
+
+[Term]
+id: TTrait:0000003
+name: last_name
+def: Field last_name in Contact worksheet
+
+[Term]
+id: TTrait:0000004
+name: contact_type
+def: Field contact_type in Contact worksheet
+
+[Term]
+id: TTrait:0000005
+name: affiliation
+def: Field affiliation in Contact worksheet
+
+[Term]
+id: TTrait:0000006
+name: address
+def: Field address in Contact worksheet
+
+[Term]
+id: TTrait:0000007
+name: email
+def: Field email in Contact worksheet
+
+[Term]
+id: TTrait:0000008
+name: phone
+def: Field phone in Contact worksheet
+
+[Term]
+id: TTrait:0000009
+name: country
+def: Field country in Contact worksheet
+
+[Term]
+id: TTrait:00000010
+name: lab
+def: Field lab in Contact worksheet
+
+[Term]
+id: TTrait:0000011
+name: alias
+def: Field alias in Contact worksheet
+
+[Term]
+id: TTrait:0000012
+name: fax
+def: Field fax in Contact worksheet
+
+[Term]
+id: TTrait:0000013
+name: url
+def: Field url in Contact worksheet
+
+[Term]
+id: TTrait:0000014
+name: title
+def: Field title in Contact worksheet
+
+[Term]
+id: TTrait:0000015
+name: research_interests
+def: Field research_interests in Contact worksheet
+
+[Term]
+id: TTrait:0000016
+name: last_update
+def: Field last_update in Contact worksheet
+
+[Term]
+id: TTrait:0000017
+name: comments
+def: Field comments in Contact worksheet
+
+[Term]
+id: TTrait:0000018
+name: curator_comments
+def: Field curator_comments in Contact worksheet
+
+! start dictionary for next worksheet at TTrait:0000100

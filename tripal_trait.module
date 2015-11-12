@@ -1,0 +1,311 @@
+<?php
+
+/**
+ * @file
+ * This file contains all Drupal hooks for the module other than any node hooks
+ * and block hooks. Those go in the [module name].chado_node.inc file and
+ * [module_name].blocks.inc respectively
+ *
+ */
+
+// EXPLANATION: include any files needed for this module. That includes any API
+// file, the theme file, or include files.
+require('api/tripal_trait.api.inc');
+require('theme/tripal_trait.theme.inc');
+require('includes/tripal_trait.admin.inc');
+require('includes/tripal_trait.chado_node.inc');
+
+
+/**
+ * Implementation of hook_permissions()
+ *
+ * Set the permission types that this module uses.
+ *
+ * @ingroup tripal_trait
+ */
+function tripal_trait_permission() {
+
+  // Here we want to set up any of the permission types that this module needs. 
+  // Note that key (e.g. 'access tripal_trait content') must match 
+  //   access arguments in hook_menu().
+  return array(
+   'access tripal_trait content' => array(
+     'title' => t('View Traits'),
+     'description' => t('Allow users to view trait pages.'),
+   ),
+   'administer tripal trait' => array(
+     'title' => t('Administer Traits'),
+     'description' => t('Allow module administration.'),
+   )
+  );
+}
+
+/**
+ * Implements hook_menu()
+ *
+ * Specifies menu items and URLs used by this module.
+ *
+ * @ingroup tripal_trait
+ */
+function tripal_trait_menu() {
+  $items = array();
+
+  // $items array is with a list of menu items and URL callbacks.
+  // all Tripal Extension modules should provide at least these menu items:
+  //  * A menu item for an administrative home page
+  //  * A menu item for 'Help' documentation
+  //  * A menu item for a module configuration page
+  
+  // Administrative menu item (must be'admin/tripal/extension/[module name]'). 
+  // This will place the menu item in the 'Tripal' -> 'Extension Modules' page. 
+  // Be sure to set the 'access arguments' to be 'administer tripal example' 
+  // which is a permission type created in tripal_trait_permissions().
+  $items['admin/tripal/extension/tripal_trait'] = array(
+    'title' => 'Tripal Trait',
+    'description' => 'The Tripal Trait extension module',
+    'page callback' => 'tripal_trait_admin_listing',
+    'access arguments' => array('administer tripal trait'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  // Upload results page
+  $items['admin/tripal/extension/tripal_trait/upload_results'] = array(
+    'title' => 'Tripal Trait Data Load Results',
+    'description' => 'Tripal Trait upload results',
+    'page callback' => 'tripal_trait_admin_upload_results',
+    'access arguments' => array('administer tripal trait'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  
+  // EXPLANATION: all extension modules should provide a configuration page.
+  // Even if your module does not need configuration the menu item and page
+  // should be created. This helps users recognize that the module is installed
+  // and working. The configuration page can simply state that no configuration
+  // settings are available. Typically a form is provided for the module's
+  // configuration settings. Therefore the 'page callback' uses the
+  // drupal_get_form() function and the 'page argument' indicates the form
+  // to call is named 'tripal_eample_admin'. The function that describes
+  // to form is in the includes/tripal_trait.admin.inc file.
+  $items['admin/tripal/extension/tripal_trait/configuration'] = array(
+    'title' => 'Settings',
+    'description' => 'Configure the Tripal Trait module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tripal_trait_admin'),
+    'access arguments' => array('administer tripal trait'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 5,
+  );
+
+  // Several loaders will be needed to load the complex data associated with
+  // traits, maps, and markers.
+  $items['admin/tripal/extension/tripal_trait/load_data'] = array(
+    'title' => 'Load Data',
+    'description' => 'Loaders for traits, maps, and markers',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tripal_trait_load_data'),
+    'access arguments' => array('administer tripal trait'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 8
+  );
+  
+  // EXPLANATION: all extension modules should provide help documentation to
+  // describe the functionality of the module and any installation or setup
+  // tasks that may be required. The menu 'type' is MENU_LOCAL_TASK so that the
+  // link appears in a tab on the extension module's administrative page.
+  // Here the 'page callback' specifies that we are using Drupal's theme
+  // function and the 'page_arguments' indicate the name of the template file
+  // Thus, all help documentation should be provided in the
+  // [module name]/theme/tripal_trait_help.tpl.php file.
+  $items['admin/tripal/extension/tripal_trait/help'] = array(
+    'title' => 'Help',
+    'description' => 'Description of Tripal Trait Functionality',
+    'page callback' => 'theme',
+    'page arguments' => array('tripal_trait_help'),
+    'access arguments' => array('administer tripal trait'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_views_api()
+ *
+ * This hook tells Drupal that there is views support for this module which then
+ * automatically includes the tripal_db.views.inc where all the views
+ * integration code is found.
+ *
+ * @ingroup tripal_trait
+ */
+function tripal_trait_views_api() {
+  return array(
+    'api' => 3.0,
+  );
+}
+
+
+/**
+ * We need to let Drupal know about our theme functions and their arguments.
+ * We create theme functions to allow users of the module to customize the look
+ * and feel of the output generated in this module.
+ *
+ * @ingroup tripal_trait
+ */
+function tripal_trait_theme($existing, $type, $theme, $path) {
+  $core_path = drupal_get_path('module', 'tripal_core');
+
+  // EXPLANATION: this function defines all of the functions and templates that
+  // this module needs to provide content. These details are provided in the
+  // form of an array the indicates which functions or templates provide
+  // content. Please see the Drupal theming guide for an in-depth description
+  // for how theming works in Drupal:
+  // https://drupal.org/documentation/theme
+
+  $items = array(
+
+    // EXPLANATION: the following defines all of the template files used for
+    // this module. Templates are named with underscores separating words, and
+    // correspond directly to a file with the extension '.tpl.php'. For example
+    // the 'tripal_trait_base' template will have a corresponding
+    // tripal_trait_base.tpl.php file where the display code is housed.
+    // The only required templates are the 'base',  'help' and 'teaser'
+    // templates. The base template provides the basic information about the
+    // record in Chado. The 'help' template provides the administrative help
+    // documentation, and the teaser provides a brief summary of the record that
+    // can be used as short description of the record in aggregated lists.
+
+    // the base template
+    'tripal_trait_base' => array(
+      'variables' => array('node' => NULL),
+      'template' => 'tripal_trait_base',
+      'path' => "$path/theme/templates",
+    ),
+    // the teaser template.
+    'tripal_trait_teaser' => array(
+      'variables' => array('node' => NULL),
+      'template' => 'tripal_trait_teaser',
+      'path' => "$path/theme/templates",
+    ),
+    // the data loading template
+    'tripal_trait_load' => array(
+      'template' => 'tripal_trait_load',
+      'variables' =>  array(NULL),
+      'path' => "$path/theme/templates",
+    ),
+    // the loading results template
+    'tripal_trait_upload_results' => array(
+      'template' => 'tripal_trait_upload_results',
+      'variables' =>  array(NULL),
+      'path' => "$path/theme/templates",
+    ),
+    // the help template
+    'tripal_trait_help' => array(
+      'template' => 'tripal_trait_help',
+      'variables' =>  array(NULL),
+      'path' => "$path/theme/templates",
+    ),
+
+    // EXPLANATION: Typically, a different template is created for each subset
+    // of data.
+    // For example, most Chado tables have a 'XXXXprop', 'XXXX_cvterm',
+    // 'XXXX_dbxref', 'XXXX_synonyms', 'XXXX_relationships' tables. Therefore,
+    // a template is created to display data from each of these tables.
+
+    'tripal_trait_properties' => array(
+      'variables' => array('node' => NULL),
+      'template' => 'tripal_trait_properties',
+      'path' => "$path/theme/templates",
+    ),
+    'tripal_trait_references' => array(
+      'variables' => array('node' => NULL),
+      'template' => 'tripal_trait_references',
+      'path' => "$path/theme/templates",
+    ),
+    'tripal_trait_relationships' => array(
+      'variables' => array('node' => NULL),
+      'template' => 'tripal_trait_relationships',
+      'path' => "$path/theme/templates",
+    ),
+
+    // EXPLANATION: sometimes a module may want to add content to another
+    // modules' node types. For example, the feature module does this by
+    // adding a 'feature summary' data to an organism. To add data to another
+    // module's node, the templates belong to this module and are specified in
+    // the same way as above. However, the naming of the template is changed to
+    // include the name of the module that supplies the node type followed by
+    // our record name:
+
+    // tripal_organism templates
+    'tripal_organism_examples' => array(
+      'variables' => array('node' => NULL),
+      'template' => 'tripal_organism_examples',
+      'path' => "$path/theme/templates",
+    ),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_help()
+ *
+ * Adds a help page to the module list
+ */
+function tripal_trait_help ($path, $arg) {
+
+  // EXPLANATION: in the tripal_trait_menu() function above we created a menu
+  // item for the help documentation. The menu item specified a function that
+  // should be called when the menu item is clicked. This is that function. But,
+  // rather than place HTML code in this function we want to have our help
+  // documentation in a template file. We specified in the
+  // tripal_trait_theme() function that we have a template file so now we want
+  // to use get the contents of that template file and return it.
+  if ($path == 'admin/help#tripal_trait') {
+    return theme('tripal_trait_help', array());
+  }
+}
+
+
+/**
+ * Implements hook_cron()
+ *
+ * @ingroup tripal_trait
+ */
+function tripal_trait_cron() {
+
+  // EXPLANATION: here we can add any code that needs to be executed when the
+  // Drupal cron is run.
+}
+
+
+/**
+ * Implementation of hook_form_alter()
+ *
+ * Allows a module to alter any form prior to it being rendered. For more
+ * details about Drupal's Form API see this page:
+ *
+ * https://api.drupal.org/api/drupal/includes!form.inc/group/form_api/7
+ *
+ */
+function tripal_trait_form_alter(&$form, &$form_state, $form_id) {
+
+  if ($form_id == "chado_example_node_form") {
+
+    // EXPLANATION:  The hook_form_alter() Drupal hook is used to alter a form
+    // before it is displayed. This allows any module to provide new form
+    // elements or change the form that another module creates. We do not need
+    // to alter a form created by another module, but we do want to alter the
+    // form for our new node type. For example, all node types will
+    // automatically have a 'Preview' button. For inserting or updating data
+    // for Chado we don't really need a Preview button and it complicates the
+    // form. So, we use the following code to disable the Preview button. If
+    // you want to keep the preview button then remove this code. turn of
+    // preview button for insert/updates
+    $form['actions']['preview']['#access'] = FALSE;
+
+    // EXPLANATION: Drupal always adds a 'body' field to all node types.
+    // Our node type doesn't use the 'body' field so we remove it from the form.
+    unset($form['body']);
+  }
+}
